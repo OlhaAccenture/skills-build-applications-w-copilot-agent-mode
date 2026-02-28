@@ -13,32 +13,22 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from rest_framework import routers
-from octofit_tracker.views import UserViewSet, TeamViewSet, ActivityViewSet, WorkoutViewSet, LeaderboardViewSet
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-
-router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'teams', TeamViewSet)
-router.register(r'activities', ActivityViewSet)
-router.register(r'workouts', WorkoutViewSet)
-router.register(r'leaderboard', LeaderboardViewSet)
-
-@api_view(['GET'])
-def api_root(request):
-    return Response({
-        'users': '/users/',
-        'teams': '/teams/',
-        'activities': '/activities/',
-        'workouts': '/workouts/',
-        'leaderboard': '/leaderboard/',
-    })
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', api_root),
+    path('', api_root),  # Existing root API endpoint
+    path('api/', include(router.urls)),  # Existing router URLs
+]
+
+import os
+from django.http import JsonResponse
+
+def api_root_with_codespace(request):
+    codespace_name = os.environ.get('CODESPACE_NAME', 'localhost')
+    api_url = f"https://{codespace_name}-8000.app.github.dev/api/"
+    return JsonResponse({"api_url": api_url})
+
+urlpatterns += [
+    path('api/', api_root_with_codespace),  # New endpoint for codespace API URL
+]
     path('', include(router.urls)),
 ]
